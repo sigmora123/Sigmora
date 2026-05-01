@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Sigmora</title>
+  <style>
+    body {
+      background: #0f172a;
+      color: white;
+      font-family: Arial;
+      text-align: center;
+    }
+    .box {
+      background: #1e293b;
+      margin: 20px auto;
+      padding: 20px;
+      width: 300px;
+      border-radius: 10px;
+    }
+    button {
+      background: green;
+      padding: 10px;
+      border: none;
+      color: white;
+      cursor: pointer;
+    }
+  </style>
+</head>
+
+<body>
+
+<h1>Sigmora</h1>
+<p>Smart Trading Decision Tool</p>
+
+<div class="box">
+  <h2>BTC/USDT</h2>
+  <p>RSI: Buy</p>
+  <p>MACD: Sell</p>
+  <p>MA: Buy</p>
+
+  <h3 id="result">Result: WAIT</h3>
+
+  <button onclick="calc()">Check Signal</button>
+</div>
+
+<script>
+function calc() {
+  let buy = 2;
+  let sell = 1;
+
+  if (buy >= 2) {
+    document.getElementById("result").innerText = "Result: BUY";
+  } else if (sell >= 2) {
+    document.getElementById("result").innerText = "Result: SELL";
+  } else {
+    document.getElementById("result").innerText = "Result: WAIT";
+  }
+}
+</script>
+
+</body>
+                </html>

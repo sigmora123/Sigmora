@@ -15,7 +15,7 @@
       backdrop-filter: blur(10px);
       margin: 40px auto;
       padding: 25px;
-      width: 300px;
+      width: 320px;
       border-radius: 15px;
     }
 
@@ -24,6 +24,12 @@
       padding: 10px;
       border: none;
       cursor: pointer;
+      margin-top: 10px;
+    }
+
+    select {
+      padding: 8px;
+      margin-bottom: 10px;
     }
   </style>
 </head>
@@ -34,42 +40,41 @@
 <p>Smart Trading Decision Tool</p>
 
 <div class="box">
-  <div style="margin-top:20px;">
-  
-    src="https://s.tradingview.com/widgetembed/?symbol=BINANCE:BTCUSDT&interval=5&theme=dark"
-    width="300"
-    height="300"
-    frameborder="0">
+
 <select onchange="changeChart(this.value)">
   <option value="BINANCE:BTCUSDT">BTC/USDT</option>
   <option value="BINANCE:ETHUSDT">ETH/USDT</option>
   <option value="OANDA:EURUSD">EUR/USD</option>
   <option value="OANDA:XAUUSD">GOLD</option>
 </select>
-    
+
 <div id="chart"></div>
+
+<p id="rsi"></p>
+<p id="macd"></p>
+<p id="ma"></p>
+
+<h3 id="result"></h3>
+<p id="confidence"></p>
+<p id="risk"></p>
+
+<button onclick="calc()">Check Signal</button>
+
 </div>
-  <p id="rsi"></p>
-  <p id="macd"></p>
-  <p id="ma"></p>
 
-  <h3 id="result"></h3>
-  <p id="confidence"></p>
-  <p id="risk"></p>
+<script>
 
-  <button onclick="calc()">Check Signal</button>
-</div>
-
-  <script>
-
+// chart change function
 function changeChart(pair) {
   document.getElementById("chart").innerHTML =
     `<iframe src="https://s.tradingview.com/widgetembed/?symbol=${pair}&interval=5&theme=dark"
     width="300" height="300"></iframe>`;
 }
 
+// default chart
 changeChart("BINANCE:BTCUSDT");
 
+// signal logic
 function calc() {
   let rsiValue = Math.floor(Math.random()*100);
   let rsi = rsiValue < 30 ? "Buy" : rsiValue > 70 ? "Sell" : "Neutral";
@@ -85,8 +90,8 @@ function calc() {
   let sell = [rsi, macd, ma].filter(x => x=="Sell").length;
 
   let result = "";
-  if (buy > sell) result = "BUY";
-  else if (sell > buy) result = "SELL";
+  if (buy > sell) result = "STRONG BUY";
+  else if (sell > buy) result = "STRONG SELL";
   else result = "WAIT";
 
   document.getElementById("result").innerText = "Result: " + result;

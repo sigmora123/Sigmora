@@ -1,3 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Sigmora</title>
+  <style>
+    body {
+      background: linear-gradient(135deg, #0f172a, #1e3a8a);
+      color: white;
+      font-family: Arial;
+      text-align: center;
+    }
+
+    .box {
+      background: rgba(255,255,255,0.1);
+      backdrop-filter: blur(10px);
+      margin: 40px auto;
+      padding: 25px;
+      width: 300px;
+      border-radius: 15px;
+    }
+
+    button {
+      background: #00ff88;
+      padding: 10px;
+      border: none;
+      cursor: pointer;
+    }
+  </style>
+</head>
+
+<body>
+
+<h1>Sigmora</h1>
+<p>Smart Trading Decision Tool</p>
+
+<div class="box">
+  <p id="rsi"></p>
+  <p id="macd"></p>
+  <p id="ma"></p>
+
+  <h3 id="result"></h3>
+  <p id="confidence"></p>
+  <p id="risk"></p>
+
+  <button onclick="calc()">Check Signal</button>
+</div>
+
 <script>
 function calc() {
   let rsiValue = Math.floor(Math.random()*100);
@@ -27,3 +74,6 @@ function calc() {
   document.getElementById("risk").innerText = "Risk: " + risk;
 }
 </script>
+
+</body>
+</html>

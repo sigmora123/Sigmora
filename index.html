@@ -63,45 +63,92 @@
 </div>
 
 <script>
-
-// chart change function
+// ===== Chart =====
 function changeChart(pair) {
   document.getElementById("chart").innerHTML =
     `<iframe src="https://s.tradingview.com/widgetembed/?symbol=${pair}&interval=5&theme=dark"
-    width="300" height="300"></iframe>`;
+      width="300" height="300"></iframe>`;
 }
-
-// default chart
 changeChart("BINANCE:BTCUSDT");
 
-// signal logic
-function calc() {
-  let rsiValue = Math.floor(Math.random()*100);
-  let rsi = rsiValue < 30 ? "Buy" : rsiValue > 70 ? "Sell" : "Neutral";
-
-  let macd = Math.random() > 0.5 ? "Buy" : "Sell";
-  let ma = Math.random() > 0.5 ? "Buy" : "Sell";
-
-  document.getElementById("rsi").innerText = "RSI ("+rsiValue+"): " + rsi;
-  document.getElementById("macd").innerText = "MACD: " + macd;
-  document.getElementById("ma").innerText = "MA: " + ma;
-
-  let buy = [rsi, macd, ma].filter(x => x=="Buy").length;
-  let sell = [rsi, macd, ma].filter(x => x=="Sell").length;
-
-  let result = "";
-  if (buy > sell) result = "STRONG BUY";
-  else if (sell > buy) result = "STRONG SELL";
-  else result = "WAIT";
-
-  document.getElementById("result").innerText = "Result: " + result;
-
-  let confidence = Math.floor(Math.random()*30)+70;
-  document.getElementById("confidence").innerText = "Confidence: " + confidence + "%";
-
-  let risk = confidence > 80 ? "Low" : confidence > 70 ? "Medium" : "High";
-  document.getElementById("risk").innerText = "Risk: " + risk;
+// ===== Helpers =====
+function ema(values, period) {
+  const k = 2 / (period + 1);
+  let emaArr = [];
+  let prev = values[0];
+  emaArr.push(prev);
+  for (let i = 1; i < values.length; i++) {
+    const cur = values[i] * k + prev * (1 - k);
+    emaArr.push(cur);
+    prev = cur;
+  }
+  return emaArr;
 }
+
+// ===== MAIN: real-like calc =====
+async function calc() {
+  try {
+    // BTC/USDT 5m candles (last 100)
+    const res = await fetch("https://api.binance.com/api/v3/klines?symbol=BTCUSDT&interval=5m&limit=100");
+    const data = await res.json();
+
+    // close prices
+    const closes = data.map(c => parseFloat(c[4]));
+
+    // ===== RSI (approx) =====
+    let gains = 0, losses = 0;
+    for (let i = closes.length - 15; i < closes.length; i++) {
+      const diff = closes[i] - closes[i - 1];
+      if (diff >= 0) gains += diff;
+      else losses -= diff;
+    }
+    const rs = gains / (losses || 1);
+    const rsiValue = 100 - (100 / (1 + rs));
+
+    let rsi =
+      rsiValue < 30 ? "Buy" :
+      rsiValue > 70 ? "Sell" : "Neutral";
+
+    // ===== MACD (approx) =====
+    const ema12 = ema(closes, 12);
+    const ema26 = ema(closes, 26);
+    const macdLine = ema12[ema12.length - 1] - ema26[ema26.length - 1];
+    const macd = macdLine > 0 ? "Buy" : "Sell";
+
+    // ===== MA (simple) =====
+    const ma =
+      closes[closes.length - 1] > (closes.slice(-20).reduce((a,b)=>a+b,0)/20)
+      ? "Buy" : "Sell";
+
+    // ===== UI update =====
+    document.getElementById("rsi").innerText = "RSI (" + rsiValue.toFixed(1) + "): " + rsi;
+    document.getElementById("macd").innerText = "MACD: " + macd;
+    document.getElementById("ma").innerText = "MA: " + ma;
+
+    // ===== Final signal =====
+    let buy = [rsi, macd, ma].filter(x => x == "Buy").length;
+    let sell = [rsi, macd, ma].filter(x => x == "Sell").length;
+
+    let result =
+      buy > sell ? "STRONG BUY" :
+      sell > buy ? "STRONG SELL" : "WAIT";
+
+    document.getElementById("result").innerText = "Result: " + result;
+
+    // confidence + risk
+    let confidence = Math.min(95, 60 + Math.abs(buy - sell) * 10);
+    document.getElementById("confidence").innerText = "Confidence: " + confidence + "%";
+
+    let risk = confidence > 80 ? "Low" : confidence > 65 ? "Medium" : "High";
+    document.getElementById("risk").innerText = "Risk: " + risk;
+
+  } catch (e) {
+    console.log(e);
+  }
+}
+
+// auto update हर 10 सेकंड
+calc();
 setInterval(calc, 10000);
 </script>
 

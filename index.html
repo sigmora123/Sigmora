@@ -102,7 +102,7 @@ function calc() {
   let risk = confidence > 80 ? "Low" : confidence > 70 ? "Medium" : "High";
   document.getElementById("risk").innerText = "Risk: " + risk;
 }
-
+setInterval(calc, 10000);
 </script>
 
 </body>

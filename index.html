@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sigmora Lite - Live Trading Signals</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-chart-financial@0.2.1/dist/chartjs-chart-financial.min.js"></script>
     <style>
         * {
@@ -37,16 +37,23 @@
             align-items: center;
             margin-bottom: 20px;
             flex-wrap: wrap;
-            gap: 10px;
+            gap: 15px;
         }
 
         .logo {
-            font-size: 24px;
+            font-size: 28px;
             font-weight: bold;
-            background: linear-gradient(45deg, #00d4ff, #5b8bf5);
+            background: linear-gradient(45deg, #00d4ff, #5b8bf5, #ff6b9d);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
+        }
+
+        .pair-info {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            min-width: 250px;
         }
 
         .pair-selector {
@@ -59,132 +66,213 @@
             background: rgba(255,255,255,0.1);
             border: 1px solid rgba(255,255,255,0.2);
             color: white;
-            padding: 8px 16px;
+            padding: 10px 16px;
             border-radius: 8px;
             font-size: 14px;
             cursor: pointer;
             transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        select:focus, button:focus {
+            outline: none;
+            border-color: #00d4ff;
+            box-shadow: 0 0 0 3px rgba(0,212,255,0.2);
         }
 
         select:hover, button:hover {
             background: rgba(255,255,255,0.2);
-            border-color: #00d4ff;
+            transform: translateY(-1px);
         }
 
-        .price-display {
-            font-size: 28px;
-            font-weight: bold;
-            color: #00ff88;
-            text-shadow: 0 0 10px rgba(0,255,136,0.5);
+        .live-price {
+            font-size: 32px;
+            font-weight: 700;
+            margin-right: 10px;
         }
 
         .price-change {
-            font-size: 14px;
-            margin-left: 10px;
+            font-size: 16px;
+            font-weight: 500;
+            padding: 4px 12px;
+            border-radius: 20px;
+            background: rgba(0,0,0,0.3);
         }
+
+        .price-up { color: #00ff88; border: 1px solid rgba(0,255,136,0.3); }
+        .price-down { color: #ff4444; border: 1px solid rgba(255,68,68,0.3); }
 
         .chart-container {
             flex: 1;
             position: relative;
-            background: rgba(0,0,0,0.3);
-            border-radius: 16px;
+            background: rgba(0,0,0,0.4);
+            border-radius: 20px;
             overflow: hidden;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+            box-shadow: 0 25px 50px rgba(0,0,0,0.6);
+            margin-bottom: 20px;
         }
 
-        .timeframe-buttons {
+        canvas {
+            height: 100% !important;
+            width: 100% !important;
+        }
+
+        .controls {
             position: absolute;
-            top: 10px;
-            right: 10px;
+            top: 20px;
+            right: 20px;
             display: flex;
-            gap: 5px;
-            z-index: 10;
+            gap: 8px;
+            z-index: 20;
+            background: rgba(0,0,0,0.7);
+            padding: 10px;
+            border-radius: 12px;
+            backdrop-filter: blur(20px);
+        }
+
+        .timeframe-btn {
+            padding: 8px 12px;
+            font-size: 13px;
+            min-width: 45px;
         }
 
         .timeframe-btn.active {
-            background: #00d4ff !important;
+            background: linear-gradient(45deg, #00d4ff, #0099cc) !important;
             color: #000 !important;
+            box-shadow: 0 4px 15px rgba(0,212,255,0.4);
         }
 
-        .signals-container {
+        .status {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(0,0,0,0.7);
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-size: 13px;
+            backdrop-filter: blur(20px);
+        }
+
+        .signals-section {
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: 2fr 1fr;
             gap: 20px;
-            margin-top: 20px;
-            height: 140px;
+            height: 160px;
         }
 
         .signal-card {
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 12px;
-            padding: 20px;
-            backdrop-filter: blur(10px);
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 16px;
+            padding: 25px;
+            backdrop-filter: blur(20px);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
         }
 
-        .signal-main {
-            grid-column: span 2;
-            background: linear-gradient(135deg, rgba(0,212,255,0.2), rgba(91,139,245,0.2));
+        .main-signal {
+            grid-column: span 1;
+            background: linear-gradient(135deg, rgba(0,212,255,0.15), rgba(91,139,245,0.15));
             border: 1px solid rgba(0,212,255,0.3);
         }
 
-        .signal-title {
+        .signal-header {
             font-size: 14px;
             opacity: 0.8;
-            margin-bottom: 10px;
+            margin-bottom: 12px;
             text-transform: uppercase;
             letter-spacing: 1px;
+            font-weight: 500;
         }
 
-        .signal-value {
-            font-size: 32px;
-            font-weight: bold;
-            margin-bottom: 5px;
+        .signal-text {
+            font-size: 36px;
+            font-weight: 800;
+            margin-bottom: 15px;
+            line-height: 1.2;
         }
 
-        .strong-buy { color: #00ff88; text-shadow: 0 0 10px rgba(0,255,136,0.5); }
-        .buy { color: #90ff90; }
-        .sell { color: #ff9090; }
-        .strong-sell { color: #ff4444; text-shadow: 0 0 10px rgba(255,68,68,0.5); }
-        .wait { color: #ffeb3b; }
-
-        .confidence-bar {
-            width: 100%;
-            height: 8px;
-            background: rgba(255,255,255,0.1);
-            border-radius: 4px;
-            overflow: hidden;
-            margin-top: 10px;
+        .signal-strong-buy { 
+            color: #00ff88; 
+            text-shadow: 0 0 20px rgba(0,255,136,0.6); 
+        }
+        .signal-buy { color: #66ff99; }
+        .signal-sell { color: #ff6666; }
+        .signal-strong-sell { 
+            color: #ff3333; 
+            text-shadow: 0 0 20px rgba(255,51,51,0.6); 
+        }
+        .signal-neutral { 
+            color: #ffeb3b; 
+            text-shadow: 0 0 10px rgba(255,235,59,0.5);
         }
 
-        .confidence-fill {
-            height: 100%;
-            transition: width 0.5s ease;
-            border-radius: 4px;
+        .metrics {
+            display: flex;
+            gap: 30px;
+        }
+
+        .metric {
+            text-align: center;
+        }
+
+        .metric-value {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .metric-label {
+            font-size: 12px;
+            opacity: 0.7;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         .indicators-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
             gap: 15px;
-            margin-top: 10px;
         }
 
-        .indicator-item {
+        .indicator {
             text-align: center;
+            padding: 12px;
+            background: rgba(255,255,255,0.03);
+            border-radius: 8px;
         }
 
         .indicator-value {
             font-size: 20px;
-            font-weight: bold;
-            margin-bottom: 5px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .indicator-label {
+            font-size: 11px;
+            opacity: 0.7;
         }
 
         @media (max-width: 768px) {
-            .container { padding: 10px; }
-            .signals-container { grid-template-columns: 1fr; height: auto; }
-            .signal-main { grid-column: span 1; }
-            .header { flex-direction: column; align-items: flex-start; gap: 15px; }
+            .container { padding: 15px; }
+            .signals-section { 
+                grid-template-columns: 1fr; 
+                height: auto;
+                gap: 15px;
+            }
+            .header { flex-direction: column; align-items: flex-start; gap: 20px; }
+            .pair-info { align-items: flex-start; }
+            .controls { 
+                position: relative;
+                top: auto;
+                right: auto;
+                bottom: auto;
+                left: auto;
+                margin-top: 15px;
+                justify-content: center;
+                width: 100%;
+            }
         }
     </style>
 </head>
@@ -192,54 +280,54 @@
     <div class="container">
         <div class="header">
             <div class="logo">⚡ Sigmora Lite</div>
-            <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+            <div class="pair-info">
                 <div class="pair-selector">
-                    <select id="pairSelect">
+                    <select id="symbolSelect">
                         <option value="BTCUSDT">BTC/USDT</option>
                         <option value="ETHUSDT">ETH/USDT</option>
-                        <option value="EURUSD">EUR/USD</option>
-                        <option value="USDJPY">USD/JPY</option>
-                        <option value="XAUUSD">GOLD</option>
+                        <option value="BNBUSDT">BNB/USDT</option>
+                        <option value="ADAUSDT">ADA/USDT</option>
+                        <option value="SOLUSDT">SOL/USDT</option>
                     </select>
-                    <div class="price-display" id="livePrice">-</div>
+                    <div class="live-price" id="currentPrice">-</div>
                     <div class="price-change" id="priceChange">-</div>
-                </div>
-                <div class="timeframe-buttons" id="timeframeButtons">
-                    <button class="timeframe-btn active" data-tf="1m">1m</button>
-                    <button class="timeframe-btn" data-tf="5m">5m</button>
-                    <button class="timeframe-btn" data-tf="15m">15m</button>
-                    <button class="timeframe-btn" data-tf="1h">1h</button>
                 </div>
             </div>
         </div>
 
         <div class="chart-container">
-            <canvas id="priceChart"></canvas>
+            <div class="controls" id="timeframeControls">
+                <button class="timeframe-btn active" data-interval="1m">1m</button>
+                <button class="timeframe-btn" data-interval="5m">5m</button>
+                <button class="timeframe-btn" data-interval="15m">15m</button>
+                <button class="timeframe-btn" data-interval="1h">1h</button>
+            </div>
+            <canvas id="candlestickChart"></canvas>
+            <div class="status" id="statusIndicator">
+                🔄 Loading live data...
+            </div>
         </div>
 
-        <div class="signals-container">
-            <div class="signal-card signal-main">
-                <div class="signal-title">Trading Signal</div>
-                <div class="signal-value" id="mainSignal">WAIT</div>
-                <div style="display: flex; gap: 20px; margin-top: 15px; font-size: 14px;">
-                    <div>
-                        <div>Confidence</div>
-                        <div class="confidence-bar">
-                            <div class="confidence-fill" id="confidenceFill" style="width: 0%; background: #ffeb3b;"></div>
-                        </div>
-                        <div id="confidenceText" style="margin-top: 5px;">0%</div>
+        <div class="signals-section">
+            <div class="signal-card main-signal">
+                <div class="signal-header">AI Trading Signal</div>
+                <div class="signal-text signal-neutral" id="mainSignal">WAIT</div>
+                <div class="metrics">
+                    <div class="metric">
+                        <div class="metric-value" id="confidence">0%</div>
+                        <div class="metric-label">Confidence</div>
                     </div>
-                    <div>
-                        <div>Risk Level</div>
-                        <div id="riskLevel" style="font-weight: bold; margin-top: 5px;">Medium</div>
+                    <div class="metric">
+                        <div class="metric-value" id="riskLevel">Medium</div>
+                        <div class="metric-label">Risk</div>
                     </div>
                 </div>
             </div>
-            
+
             <div class="signal-card">
-                <div class="signal-title">Key Indicators</div>
-                <div class="indicators-grid" id="indicatorsGrid">
-                    <!-- Indicators populated by JS -->
+                <div class="signal-header">Live Indicators</div>
+                <div class="indicators-grid" id="indicators">
+                    <!-- Dynamic indicators -->
                 </div>
             </div>
         </div>
@@ -249,283 +337,236 @@
         class SigmoraLite {
             constructor() {
                 this.symbol = 'BTCUSDT';
-                this.timeframe = '1m';
-                this.chartData = [];
+                this.interval = '1m';
+                this.candles = [];
                 this.chart = null;
                 this.lastPrice = 0;
                 this.init();
             }
 
-            async init() {
+            init() {
                 this.setupEventListeners();
                 this.createChart();
-                await this.fetchData();
-                this.startAutoUpdate();
+                this.loadInitialData();
+                this.startLiveUpdates();
             }
 
             setupEventListeners() {
-                document.getElementById('pairSelect').addEventListener('change', (e) => {
+                // Symbol change
+                document.getElementById('symbolSelect').addEventListener('change', (e) => {
                     this.symbol = e.target.value;
-                    this.fetchData();
+                    this.loadInitialData();
                 });
 
+                // Timeframe change
                 document.querySelectorAll('.timeframe-btn').forEach(btn => {
                     btn.addEventListener('click', (e) => {
                         document.querySelector('.timeframe-btn.active').classList.remove('active');
                         e.target.classList.add('active');
-                        this.timeframe = e.target.dataset.tf;
-                        this.fetchData();
+                        this.interval = e.target.dataset.interval;
+                        this.loadInitialData();
                     });
                 });
             }
 
             createChart() {
-                const ctx = document.getElementById('priceChart').getContext('2d');
+                const ctx = document.getElementById('candlestickChart').getContext('2d');
+                
                 this.chart = new Chart(ctx, {
                     type: 'candlestick',
                     data: {
                         datasets: [{
-                            label: 'Price',
+                            label: `${this.symbol} Price`,
                             data: [],
                             borderColor: '#00d4ff',
                             backgroundColor: {
-                                up: '#00ff88',
-                                down: '#ff4444',
-                                unchanged: '#666'
-                            }
+                                up: '#00ff88AA',
+                                down: '#ff4444AA',
+                                unchanged: '#666666AA'
+                            },
+                            borderWidth: 1
                         }]
                     },
                     options: {
                         responsive: true,
                         maintainAspectRatio: false,
+                        interaction: {
+                            intersect: false,
+                            mode: 'index'
+                        },
                         plugins: {
                             legend: { display: false },
                             tooltip: {
-                                backgroundColor: 'rgba(0,0,0,0.8)',
+                                backgroundColor: 'rgba(20,20,40,0.95)',
                                 titleColor: '#fff',
-                                bodyColor: '#fff'
+                                bodyColor: '#e0e0e0',
+                                borderColor: '#00d4ff',
+                                borderWidth: 1,
+                                cornerRadius: 8,
+                                displayColors: false,
+                                callbacks: {
+                                    title: (ctx) => `Price: $${ctx[0].parsed.c.toFixed(4)}`,
+                                    label: (ctx) => {
+                                        const candle = ctx.raw;
+                                        return [
+                                            `Open: $${candle.o.toFixed(4)}`,
+                                            `High: $${candle.h.toFixed(4)}`,
+                                            `Low: $${candle.l.toFixed(4)}`,
+                                            `Close: $${candle.c.toFixed(4)}`
+                                        ];
+                                    }
+                                }
                             }
                         },
                         scales: {
                             x: {
                                 type: 'time',
-                                time: { unit: this.timeframe === '1h' ? 'hour' : 'minute' }
+                                time: {
+                                    unit: this.interval === '1h' ? 'hour' : 'minute',
+                                    displayFormats: {
+                                        minute: 'HH:mm',
+                                        hour: 'MMM dd HH:mm'
+                                    }
+                                },
+                                grid: {
+                                    color: 'rgba(255,255,255,0.1)',
+                                    lineWidth: 1
+                                },
+                                ticks: {
+                                    color: '#b0b0b0'
+                                }
                             },
                             y: {
-                                beginAtZero: false
+                                grid: {
+                                    color: 'rgba(255,255,255,0.05)'
+                                },
+                                ticks: {
+                                    color: '#b0b0b0',
+                                    callback: (value) => `$${value.toFixed(2)}`
+                                }
                             }
+                        },
+                        animation: {
+                            duration: 0
                         }
                     }
                 });
             }
 
-            async fetchData() {
+            async loadInitialData() {
                 try {
-                    const tfMap = { '1m': '1m', '5m': '5m', '15m': '15m', '1h': '1h' };
-                    const limit = this.timeframe === '1h' ? 100 : 200;
+                    this.setStatus('📊 Loading chart data...', 'loading');
                     
-                    let url;
-                    if (this.symbol === 'XAUUSD') {
-                        // Free forex data from freeforexapi.com
-                        url = `https://freeforexapi.com/api/live?pairs=${this.symbol}&token=demo`;
-                    } else {
-                        // Binance API
-                        url = `https://api.binance.com/api/v3/klines?symbol=${this.symbol}&interval=${tfMap[this.timeframe]}&limit=${limit}`;
-                    }
-
-                    const response = await fetch(url);
-                    const data = await response.json();
-
-                    let klines;
-                    if (this.symbol === 'XAUUSD') {
-                        // Handle forex API response format
-                        klines = Object.values(data.rates || data).map(rate => {
-                            const ts = Date.now() - Math.random() * 3600000;
-                            return [ts, rate.bid || rate.rate, rate.ask || rate.rate, rate.ask || rate.rate, rate.bid || rate.rate, 1000];
-                        });
-                    } else {
-                        klines = data.map(kline => ({
-                            x: kline[0],
-                            o: parseFloat(kline[1]),
-                            h: parseFloat(kline[2]),
-                            l: parseFloat(kline[3]),
-                            c: parseFloat(kline[4]),
-                            v: parseFloat(kline[5])
-                        }));
-                    }
-
-                    this.chartData = klines.slice(-100);
-                    this.updateChart();
-                    this.calculateIndicators();
-                    this.updatePriceDisplay();
-
+                    const limit = this.interval === '1h' ? 150 : 200;
+                    const response = await fetch(
+                        `https://api.binance.com/api/v3/klines?symbol=${this.symbol}&interval=${this.interval}&limit=${limit}`
+                    );
+                    
+                    if (!response.ok) throw new Error('API rate limit');
+                    
+                    const klines = await response.json();
+                    this.processKlines(klines);
+                    
+                    this.setStatus(`✅ Live data for ${this.symbol} ${this.interval}`, 'success');
+                    
                 } catch (error) {
-                    console.error('Data fetch error:', error);
-                    // Fallback to BTCUSDT if other pairs fail
-                    if (this.symbol !== 'BTCUSDT') {
-                        this.symbol = 'BTCUSDT';
-                        document.getElementById('pairSelect').value = 'BTCUSDT';
-                        this.fetchData();
-                    }
+                    console.error('Initial load error:', error);
+                    this.setStatus('❌ Connection error, retrying...', 'error');
+                    setTimeout(() => this.loadInitialData(), 3000);
                 }
+            }
+
+            async startLiveUpdates() {
+                // Update every 10 seconds
+                setInterval(() => {
+                    this.updateLiveData();
+                }, 10000);
+            }
+
+            async updateLiveData() {
+                try {
+                    const response = await fetch(
+                        `https://api.binance.com/api/v3/klines?symbol=${this.symbol}&interval=${this.interval}&limit=2`
+                    );
+                    
+                    const klines = await response.json();
+                    const newCandle = this.processSingleKline(klines[0]);
+                    
+                    // Add new candle if it's different from last
+                    if (this.candles.length === 0 || 
+                        this.candles[this.candles.length - 1].x !== newCandle.x) {
+                        this.candles.push(newCandle);
+                        
+                        // Keep only last 150 candles
+                        if (this.candles.length > 150) {
+                            this.candles.shift();
+                        }
+                    } else {
+                        // Update current candle
+                        this.candles[this.candles.length - 1] = newCandle;
+                    }
+                    
+                    this.updateChart();
+                    this.updatePriceDisplay();
+                    this.calculateAndDisplaySignals();
+                    
+                } catch (error) {
+                    console.error('Live update error:', error);
+                }
+            }
+
+            processKlines(klines) {
+                this.candles = klines.map(kline => ({
+                    x: parseInt(kline[0]), // timestamp
+                    o: parseFloat(kline[1]), // open
+                    h: parseFloat(kline[2]), // high
+                    l: parseFloat(kline[3]), // low
+                    c: parseFloat(kline[4]), // close
+                    v: parseFloat(kline[5])  // volume
+                })).slice(-150);
+                
+                this.updateChart();
+                this.updatePriceDisplay();
+                this.calculateAndDisplaySignals();
+            }
+
+            processSingleKline(kline) {
+                return {
+                    x: parseInt(kline[0]),
+                    o: parseFloat(kline[1]),
+                    h: parseFloat(kline[2]),
+                    l: parseFloat(kline[3]),
+                    c: parseFloat(kline[4]),
+                    v: parseFloat(kline[5])
+                };
             }
 
             updateChart() {
-                this.chart.data.datasets[0].data = this.chartData;
-                this.chart.update('none');
+                if (this.chart && this.candles.length > 0) {
+                    this.chart.data.datasets[0].data = this.candles;
+                    this.chart.update('none');
+                }
             }
 
             updatePriceDisplay() {
-                if (this.chartData.length > 0) {
-                    const currentPrice = this.chartData[this.chartData.length - 1].c;
-                    const prevPrice = this.chartData[this.chartData.length - 2]?.c || currentPrice;
-                    const change = ((currentPrice - prevPrice) / prevPrice) * 100;
-                    
-                    document.getElementById('livePrice').textContent = `$${currentPrice.toFixed(4)}`;
+                if (this.candles.length === 0) return;
+                
+                const current = this.candles[this.candles.length - 1];
+                const previous = this.candles[this.candles.length - 2];
+                
+                document.getElementById('currentPrice').textContent = 
+                    `$${current.c.toFixed(4)}`;
+                
+                if (previous) {
+                    const changePercent = ((current.c - previous.c) / previous.c) * 100;
                     const changeEl = document.getElementById('priceChange');
-                    changeEl.textContent = `${change >= 0 ? '+' : ''}${change.toFixed(2)}%`;
-                    changeEl.style.color = change >= 0 ? '#00ff88' : '#ff4444';
+                    changeEl.textContent = `${changePercent >= 0 ? '+' : ''}${changePercent.toFixed(2)}%`;
+                    changeEl.className = `price-change ${changePercent >= 0 ? 'price-up' : 'price-down'}`;
                 }
             }
 
-            calculateIndicators() {
-                const prices = this.chartData.map(d => d.c);
-                const rsi = this.calculateRSI(prices, 14);
-                const macd = this.calculateMACD(prices);
-                const ema9 = this.calculateEMA(prices, 9);
-                const ema21 = this.calculateEMA(prices, 21);
-                const sma50 = this.calculateSMA(prices, 50);
-
-                const indicators = {
-                    rsi: rsi[rsi.length - 1],
-                    macd: macd.macd[macd.macd.length - 1],
-                    macdSignal: macd.signal[macd.signal.length - 1],
-                    emaBullish: ema9[ema9.length - 1] > ema21[ema21.length - 1],
-                    priceAboveEMA: prices[prices.length - 1] > ema21[ema21.length - 1],
-                    smaTrend: prices[prices.length - 1] > sma50[sma50.length - 1]
-                };
-
-                this.generateSignal(indicators);
-                this.updateIndicatorsDisplay(indicators);
-            }
-
-            calculateRSI(prices, period) {
-                const gains = [];
-                const losses = [];
+            calculateAndDisplaySignals() {
+                if (this.candles.length < 50) return;
                 
-                for (let i = 1; i < prices.length; i++) {
-                    const change = prices[i] - prices[i - 1];
-                    gains.push(change > 0 ? change : 0);
-                    losses.push(change < 0 ? -change : 0);
-                }
-                
-                const avgGain = this.simpleMovingAverage(gains.slice(-period), period);
-                const avgLoss = this.simpleMovingAverage(losses.slice(-period), period);
-                const rs = avgGain / avgLoss;
-                return [100 - (100 / (1 + rs))];
-            }
-
-            calculateMACD(prices) {
-                const ema12 = this.calculateEMA(prices, 12);
-                const ema26 = this.calculateEMA(prices, 26);
-                const macdLine = [];
-                
-                for (let i = 0; i < prices.length; i++) {
-                    if (i < 26) continue;
-                    macdLine.push(ema12[i] - ema26[i]);
-                }
-                
-                const signal = this.calculateEMA(macdLine, 9);
-                return { macd: macdLine, signal };
-            }
-
-            calculateEMA(prices, period) {
-                const k = 2 / (period + 1);
-                const ema = [];
-                
-                ema[0] = prices[0];
-                for (let i = 1; i < prices.length; i++) {
-                    ema[i] = prices[i] * k + ema[i - 1] * (1 - k);
-                }
-                return ema;
-            }
-
-            calculateSMA(prices, period) {
-                const sma = [];
-                for (let i = period - 1; i < prices.length; i++) {
-                    const slice = prices.slice(i - period + 1, i + 1);
-                    sma.push(slice.reduce((a, b) => a + b) / period);
-                }
-                return sma;
-            }
-
-            simpleMovingAverage(values, period) {
-                const slice = values.slice(-period);
-                return slice.reduce((a, b) => a + b) / period;
-            }
-
-            generateSignal(indicators) {
-                let buySignals = 0;
-                let sellSignals = 0;
-                let totalSignals = 0;
-
-                // RSI
-                if (indicators.rsi < 30) { buySignals++; totalSignals++; }
-                if (indicators.rsi > 70) { sellSignals++; totalSignals++; }
-
-                // MACD
-                if (indicators.macd > indicators.macdSignal) { buySignals++; totalSignals++; }
-                else { sellSignals++; totalSignals++; }
-
-                // EMA
-                if (indicators.emaBullish) { buySignals++; totalSignals++; }
-                else { sellSignals++; totalSignals++; }
-
-                // Price vs EMA
-                if (indicators.priceAboveEMA) { buySignals++; totalSignals++; }
-                else { sellSignals++; totalSignals++; }
-
-                // SMA Trend
-                if (indicators.smaTrend) { buySignals++; totalSignals++; }
-                else { sellSignals++; totalSignals++; }
-
-                const confidence = Math.round((Math.max(buySignals, sellSignals) / totalSignals) * 100);
-                
-                let signal, signalClass;
-                if (buySignals >= 4) {
-                    signal = 'STRONG BUY';
-                    signalClass = 'strong-buy';
-                } else if (buySignals >= 3) {
-                    signal = 'BUY';
-                    signalClass = 'buy';
-                } else if (sellSignals >= 4) {
-                    signal = 'STRONG SELL';
-                    signalClass = 'strong-sell';
-                } else if (sellSignals >= 3) {
-                    signal = 'SELL';
-                    signalClass = 'sell';
-                } else {
-                    signal = 'WAIT';
-                    signalClass = 'wait';
-                }
-
-                const risk = confidence > 80 ? 'Low' : confidence > 60 ? 'Medium' : 'High';
-
-                document.getElementById('mainSignal').textContent = signal;
-                document.getElementById('mainSignal').className = `signal-value ${signalClass}`;
-                
-                document.getElementById('confidenceFill').style.width = `${confidence}%`;
-                document.getElementById('confidenceFill').style.background = buySignals > sellSignals ? '#00ff88' : '#ff4444';
-                document.getElementById('confidenceText').textContent = `${confidence}%`;
-                document.getElementById('riskLevel').textContent = risk;
-            }
-
-            updateIndicatorsDisplay(indicators) {
-                const grid = document.getElementById('indicatorsGrid');
-                grid.innerHTML = `
-                    <div class="indicator-item">
-                        <div class="indicator-value">${indicators.rsi?.toFixed(1) || 50}</div>
-                        <div>RSI</div>
-                    </div>
-                    <div class="indicator-item">
-                        <div clas
+                const closes = this.candles.map(c => c.c);
+                const indicators = this.calculateTechn

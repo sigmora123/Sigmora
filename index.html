@@ -1,104 +1,29 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <title>Sigmora</title>
-  <style>
-    body {
-      background: linear-gradient(135deg, #0f172a, #1e3a8a);
-      color: white;
-      font-family: Arial;
-      text-align: center;
-    }
-
-    .box {
-      background: rgba(255,255,255,0.1);
-      backdrop-filter: blur(10px);
-      margin: 40px auto;
-      padding: 25px;
-      width: 300px;
-      border-radius: 15px;
-      box-shadow: 0 0 20px rgba(0,0,0,0.5);
-    }
-
-    select {
-      padding: 10px;
-      margin: 10px;
-      border-radius: 5px;
-    }
-
-    button {
-      background: #00ff88;
-      padding: 12px;
-      border: none;
-      color: black;
-      font-weight: bold;
-      cursor: pointer;
-      border-radius: 5px;
-    }
-
-    .buy { color: #00ff88; }
-    .sell { color: red; }
-    .wait { color: yellow; }
-  </style>
-</head>
-
-<body>
-
-<h1>Sigmora</h1>
-<p>Smart Trading Decision Tool</p>
-
-<div class="box">
-
-<select id="pair">
-  <option>BTC/USDT</option>
-  <option>EUR/USD</option>
-  <option>Gold</option>
-</select>
-
-<p id="rsi"></p>
-<p id="macd"></p>
-<p id="ma"></p>
-
-<h3 id="result"></h3>
-<p id="confidence"></p>
-<p id="risk"></p>
-
-<button onclick="calc()">Check Signal</button>
-
-</div>
-
 <script>
-function randomSignal() {
-  let arr = ["Buy", "Sell"];
-  return arr[Math.floor(Math.random() * arr.length)];
-}
-
 function calc() {
-  let rsi = randomSignal();
-  let macd = randomSignal();
-  let ma = randomSignal();
+  let rsiValue = Math.floor(Math.random()*100);
+  let rsi = rsiValue < 30 ? "Buy" : rsiValue > 70 ? "Sell" : "Neutral";
 
-  document.getElementById("rsi").innerText = "RSI: " + rsi;
+  let macd = Math.random() > 0.5 ? "Buy" : "Sell";
+  let ma = Math.random() > 0.5 ? "Buy" : "Sell";
+
+  document.getElementById("rsi").innerText = "RSI ("+rsiValue+"): " + rsi;
   document.getElementById("macd").innerText = "MACD: " + macd;
   document.getElementById("ma").innerText = "MA: " + ma;
 
   let buy = [rsi, macd, ma].filter(x => x=="Buy").length;
-  let sell = 3 - buy;
+  let sell = [rsi, macd, ma].filter(x => x=="Sell").length;
 
   let result = "";
-  if (buy >= 2) result = "BUY";
-  else if (sell >= 2) result = "SELL";
+  if (buy > sell) result = "BUY";
+  else if (sell > buy) result = "SELL";
   else result = "WAIT";
 
   document.getElementById("result").innerText = "Result: " + result;
 
-  let confidence = Math.floor(Math.random()*40)+60;
+  let confidence = Math.floor(Math.random()*30)+70;
   document.getElementById("confidence").innerText = "Confidence: " + confidence + "%";
 
-  let risk = confidence > 75 ? "Low" : confidence > 60 ? "Medium" : "High";
+  let risk = confidence > 80 ? "Low" : confidence > 70 ? "Medium" : "High";
   document.getElementById("risk").innerText = "Risk: " + risk;
 }
 </script>
-
-</body>
-</html>

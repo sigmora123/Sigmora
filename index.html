@@ -60,14 +60,16 @@
   <button onclick="calc()">Check Signal</button>
 </div>
 
-<script>
-  function changeChart(pair) {
+  <script>
+
+function changeChart(pair) {
   document.getElementById("chart").innerHTML =
     `<iframe src="https://s.tradingview.com/widgetembed/?symbol=${pair}&interval=5&theme=dark"
     width="300" height="300"></iframe>`;
 }
 
 changeChart("BINANCE:BTCUSDT");
+
 function calc() {
   let rsiValue = Math.floor(Math.random()*100);
   let rsi = rsiValue < 30 ? "Buy" : rsiValue > 70 ? "Sell" : "Neutral";
@@ -95,6 +97,7 @@ function calc() {
   let risk = confidence > 80 ? "Low" : confidence > 70 ? "Medium" : "High";
   document.getElementById("risk").innerText = "Risk: " + risk;
 }
+
 </script>
 
 </body>

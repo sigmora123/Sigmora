@@ -1,89 +1,638 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<title>Sigmora Beauty</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sigmora Beauty - Premium Beauty Products</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-<style>
-body {
-  font-family: Arial;
-  background: #fff0f5;
-  text-align: center;
-}
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
 
-h1 {
-  color: #e91e63;
-}
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 20px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
 
-.product {
-  border: 1px solid #ddd;
-  margin: 15px;
-  padding: 15px;
-  border-radius: 10px;
-  background: white;
-}
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
 
-img {
-  width: 150px;
-  border-radius: 10px;
-}
+        .logo {
+            font-size: 1.8rem;
+            font-weight: bold;
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
 
-button {
-  background: #e91e63;
-  color: white;
-  padding: 10px;
-  border: none;
-  border-radius: 5px;
-  margin: 5px;
-}
+        .search-container {
+            flex: 1;
+            max-width: 400px;
+            position: relative;
+        }
 
-.qr {
-  width: 120px;
-  margin-top: 10px;
-}
-</style>
+        .search-bar {
+            width: 100%;
+            padding: 0.8rem 1rem 0.8rem 3rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 25px;
+            font-size: 1rem;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .search-bar:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #666;
+        }
+
+        .filters {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            padding: 0.5rem 1rem;
+            border: 2px solid #e0e0e0;
+            background: white;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .filter-btn.active,
+        .filter-btn:hover {
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+            color: white;
+            border-color: transparent;
+        }
+
+        .cart-icon {
+            position: relative;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #666;
+        }
+
+        .cart-count {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: #ff6b6b;
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .main-container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 200px;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .product-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            opacity: 0;
+            transform: translateY(30px);
+        }
+
+        .product-card.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .product-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+        }
+
+        .product-image {
+            width: 100%;
+            height: 250px;
+            object-fit: cover;
+        }
+
+        .product-info {
+            padding: 1.5rem;
+        }
+
+        .product-name {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: #333;
+        }
+
+        .product-category {
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+        }
+
+        .price {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #ff6b6b;
+            margin-bottom: 1rem;
+        }
+
+        .buy-btn {
+            width: 100%;
+            padding: 0.8rem;
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .buy-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(255, 107, 107, 0.4);
+        }
+
+        .cart {
+            position: fixed;
+            top: 0;
+            right: -400px;
+            width: 400px;
+            height: 100vh;
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(20px);
+            box-shadow: -5px 0 20px rgba(0,0,0,0.1);
+            transition: right 0.3s ease;
+            z-index: 200;
+            padding: 2rem;
+            overflow-y: auto;
+        }
+
+        .cart.open {
+            right: 0;
+        }
+
+        .cart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid #eee;
+        }
+
+        .close-cart {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #666;
+        }
+
+        .cart-item {
+            display: flex;
+            gap: 1rem;
+            padding: 1rem 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .cart-item img {
+            width: 60px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 10px;
+        }
+
+        .cart-item-info {
+            flex: 1;
+        }
+
+        .cart-item-name {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .cart-item-price {
+            color: #ff6b6b;
+            font-weight: bold;
+        }
+
+        .total {
+            font-size: 1.5rem;
+            font-weight: bold;
+            text-align: center;
+            margin: 2rem 0;
+            padding: 1rem;
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+            color: white;
+            border-radius: 10px;
+        }
+
+        .checkout-btn {
+            width: 100%;
+            padding: 1rem;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 1rem;
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 150;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+            }
+
+            .search-container {
+                max-width: 100%;
+            }
+
+            .filters {
+                justify-content: center;
+            }
+
+            .products-grid {
+                grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+                gap: 1rem;
+            }
+
+            .cart {
+                width: 100%;
+                right: -100%;
+            }
+        }
+    </style>
 </head>
-
 <body>
+    <header class="header">
+        <div class="header-content">
+            <div class="logo">Sigmora Beauty</div>
+            <div class="search-container">
+                <span class="search-icon">🔍</span>
+                <input type="text" class="search-bar" placeholder="Search beauty products...">
+            </div>
+            <div class="filters" id="filters">
+                <button class="filter-btn active" data-category="all">All</button>
+                <button class="filter-btn" data-category="makeup">Makeup</button>
+                <button class="filter-btn" data-category="skincare">Skincare</button>
+                <button class="filter-btn" data-category="perfume">Perfume</button>
+            </div>
+            <div class="cart-icon" id="cartToggle">
+                🛒
+                <span class="cart-count" id="cartCount">0</span>
+            </div>
+        </div>
+    </header>
 
-<h1>Sigmora Beauty Store</h1>
-<p>Buy Trending Beauty Products</p>
+    <div class="main-container">
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+        </div>
+        <div class="products-grid" id="productsGrid"></div>
+    </div>
 
-<!-- PRODUCT 1 -->
-<div class="product">
-  <img src="https://i.imgur.com/3ZQ3Z4L.jpg">
-  <h3>Vitamin C Serum</h3>
-  <p>Price: ₹199</p>
+    <div class="overlay" id="overlay"></div>
+    <div class="cart" id="cart">
+        <div class="cart-header">
+            <h2>Your Cart</h2>
+            <button class="close-cart" id="closeCart">×</button>
+        </div>
+        <div id="cartItems"></div>
+        <div class="total" id="cartTotal">₹0</div>
+        <button class="checkout-btn" id="checkoutBtn" style="display: none;">
+            Proceed to Checkout
+        </button>
+    </div>
 
-  <!-- Payment Link -->
-  <a href="https://www.instamojo.com/YOUR-LINK">
-    <button>Buy Now (Pay Online)</button>
-  </a>
+    <script>
+        // Products data - Easy to add more products
+        const products = [
+            {
+                id: 1,
+                name: "Luxury Lipstick Matte",
+                category: "makeup",
+                price: 599,
+                image: "https://images.unsplash.com/photo-1574169208507-84376144848b?w=400&h=300&fit=crop"
+            },
+            {
+                id: 2,
+                name: "Hydrating Face Serum",
+                category: "skincare",
+                price: 1299,
+                image: "https://images.unsplash.com/photo-1584218769079-cd5f9fb1a3f4?w=400&h=300&fit=crop"
+            },
+            {
+                id: 3,
+                name: "Premium Perfume 50ml",
+                category: "perfume",
+                price: 899,
+                image: "https://images.unsplash.com/photo-1590736969950-785e5420a8fc?w=400&h=300&fit=crop"
+            },
+            {
+                id: 4,
+                name: "Eyeshadow Palette",
+                category: "makeup",
+                price: 1499,
+                image: "https://images.unsplash.com/photo-1549844961-02860e9ee9eb?w=400&h=300&fit=crop"
+            },
+            {
+                id: 5,
+                name: "Vitamin C Cream",
+                category: "skincare",
+                price: 799,
+                image: "https://images.unsplash.com/photo-1625772299848-361b803ffa25?w=400&h=300&fit=crop"
+            },
+            {
+                id: 6,
+                name: "Eau de Parfum Spray",
+                category: "perfume",
+                price: 1999,
+                image: "https://images.unsplash.com/photo-1615796153934-6b5570510dd3?w=400&h=300&fit=crop"
+            },
+            {
+                id: 7,
+                name: "Liquid Foundation",
+                category: "makeup",
+                price: 999,
+                image: "https://images.unsplash.com/photo-1608248597781-5ee8e1cf1ee3?w=400&h=300&fit=crop"
+            },
+            {
+                id: 8,
+                name: "Anti-Aging Night Cream",
+                category: "skincare",
+                price: 1599,
+                image: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=300&fit=crop"
+            }
+        ];
 
-  <p>OR Scan & Pay</p>
+        let cart = [];
+        const UPI_ID = "yourupi@sbi"; // Replace with your actual UPI ID
 
-  <!-- QR CODE -->
-  <img class="qr" src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=upi://pay?pa=YOURUPI@upi">
+        // DOM Elements
+        const loading = document.getElementById('loading');
+        const productsGrid = document.getElementById('productsGrid');
+        const searchBar = document.querySelector('.search-bar');
+        const filterBtns = document.querySelectorAll('.filter-btn');
+        const cartToggle = document.getElementById('cartToggle');
+        const cart = document.getElementById('cart');
+        const overlay = document.getElementById('overlay');
+        const closeCart = document.getElementById('closeCart');
+        const cartCount = document.getElementById('cartCount');
+        const cartItems = document.getElementById('cartItems');
+        const cartTotal = document.getElementById('cartTotal');
+        const checkoutBtn = document.getElementById('checkoutBtn');
 
-  <p>UPI: YOURUPI@upi</p>
-</div>
+        // Initialize
+        function init() {
+            renderProducts(products);
+            setupEventListeners();
+        }
 
-<!-- PRODUCT 2 -->
-<div class="product">
-  <img src="https://i.imgur.com/9Z8Z8Z8.jpg">
-  <h3>Face Glow Cream</h3>
-  <p>Price: ₹249</p>
+        // Render products
+        function renderProducts(productList) {
+            productsGrid.innerHTML = '';
+            productList.forEach((product, index) => {
+                const productCard = createProductCard(product);
+                productsGrid.appendChild(productCard);
+                
+                // Animate in
+                setTimeout(() => {
+                    productCard.classList.add('visible');
+                }, index * 100);
+            });
+        }
 
-  <a href="https://www.instamojo.com/YOUR-LINK2">
-    <button>Buy Now (Pay Online)</button>
-  </a>
+        // Create product card
+        function createProductCard(product) {
+            const card = document.createElement('div');
+            card.className = 'product-card';
+            card.innerHTML = `
+                <img src="${product.image}" alt="${product.name}" class="product-image" loading="lazy">
+                <div class="product-info">
+                    <div class="product-name">${product.name}</div>
+                    <div class="product-category">${product.category.toUpperCase()}</div>
+                    <div class="price">₹${product.price}</div>
+                    <button class="buy-btn" onclick="addToCart(${product.id})">
+                        Add to Cart
+                    </button>
+                </div>
+            `;
+            return card;
+        }
 
-  <p>OR Scan & Pay</p>
+        // Filter products
+        function filterProducts(category) {
+            let filtered = products;
+            if (category !== 'all') {
+                filtered = products.filter(p => p.category === category);
+            }
+            renderProducts(filtered);
+        }
 
-  <img class="qr" src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=upi://pay?pa=YOURUPI@upi">
+        // Search products
+        function searchProducts(query) {
+            const filtered = products.filter(p => 
+                p.name.toLowerCase().includes(query.toLowerCase()) ||
+                p.category.toLowerCase().includes(query.toLowerCase())
+            );
+            renderProducts(filtered);
+        }
 
-  <p>UPI: YOURUPI@upi</p>
-</div>
+        // Add to cart
+        function addToCart(productId) {
+            const product = products.find(p => p.id === productId);
+            const existingItem = cart.find(item => item.id === productId);
+            
+            if (existingItem) {
+                existingItem.quantity += 1;
+            } else {
+                cart.push({ ...product, quantity: 1 });
+            }
+            
+            updateCartUI();
+            showNotification('Added to cart!');
+        }
 
+        // Update cart UI
+        function updateCartUI() {
+            cartCount.textContent = cart.reduce((sum, item) => sum + item.quantity, 0);
+            
+            cartItems.innerHTML = cart.map(item => `
+                <div class="cart-item">
+                    <img src="${item.image}" alt="${item.name}">
+                    <div class="cart-item-info">
+                        <div class="cart-item-name">${item.name}</div>
+                        <div class="cart-item-price">₹${item.price} x ${item.quantity}</div>
+                    </div>
+                </div>
+            `).join('');
+
+            const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            cartTotal.textContent = `₹${total}`;
+            checkoutBtn.style.display = cart.length > 0 ? 'block' : 'none';
+        }
+
+        // Show notification
+        function showNotification(message) {
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+                color: white;
+                padding: 1rem 2rem;
+                border-radius: 10px;
+                box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+                z-index: 300;
+                animation: slideIn 0.3s ease;
+            `;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+        }
+
+        // Event listeners
+        function setupEventListeners() {
+            // Search
+            searchBar.addEventListener('input', (e) => {
+                searchProducts(e.target.value);
+            });
+
+            // Filters
+            filterBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    filterBtns.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    filterProducts(btn.dataset.category);
+                });
+            });
+
+            // Cart toggle
+            cartToggle.addEventListener('click', toggleCart);
+            closeCart.addEventListener('click', toggleCart);
+            overlay.addEventListener('click', toggleCart);
+
+            // Checkout
+            checkoutBtn.addEventListener('click', checkout);
+        }
+
+        function toggleCart() {
+            cart.classList.toggle('open');
+            overlay.classList.toggle('active');
+        }
+
+        function checkout() {
+            const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            const upiLink = `upi://pay?pa=${UPI_ID}&pn=Sigmora&am=${total}&cu=INR`;
+            window.open(upiLink, '_blank');
+        }
+
+        // Show products after loading
+        setTimeout(() => {
+            loading.style.display = 'none';
+        }, 1500);
+
+        // Initialize app
+        init();
+    </script>
 </body>
-</html>
+      </html>
